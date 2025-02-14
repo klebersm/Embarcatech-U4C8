@@ -35,7 +35,11 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(U4C8 U4C8.c )
+add_executable(
+    U4C8
+    U4C8.c
+    display/ssd1306.c
+)
 
 pico_set_program_name(U4C8 "U4C8")
 pico_set_program_version(U4C8 "0.1")
@@ -54,9 +58,12 @@ target_include_directories(U4C8 PRIVATE
 )
 
 # Add any user requested libraries
-target_link_libraries(U4C8 
-        
-        )
+target_link_libraries(
+    U4C8
+    hardware_adc
+    hardware_pwm
+    hardware_i2c
+)
 
 pico_add_extra_outputs(U4C8)
 
