@@ -119,8 +119,8 @@ void update_display(uint16_t joy_x, uint16_t joy_y) {
 
     // Calcula a posição do quadrado relativa à posição do joystick
     // Sempre subtrai 4 para centralizar o qudrado
-    int left = (joy_y * WIDTH / 4096) - 4;
-    int top = ((4096 - joy_x) * HEIGHT / 4096) - 4;
+    int left = (joy_x * WIDTH / 4096) - 4;
+    int top = ((4096 - joy_y) * HEIGHT / 4096) - 4;
 
     // Evita travamento da placa por coordenada menor que zero
     if(left < 0) left = 0;
@@ -142,8 +142,18 @@ void update_pwm(uint16_t joy_x, uint16_t joy_y) {
     // Como o PWM foi inicilizado com WRAP de 2048,
     // basta calcular a "distância" da posição do joystick até 2048
     // e, usando a função abs para obter o módulo, carregar o valor direto no level
-    pwm_set_gpio_level(LED_R, abs(2048 - joy_x));
-    pwm_set_gpio_level(LED_B, abs(2048 - joy_y));
+    int r_level = abs(2048 - joy_x);
+    int b_level = abs(2048 - joy_y);
+
+    // Correção de erro do ponto zero do joystick. O joystick, no ponto zero,
+    // apresenta uma distância do ponto (2048, 2048). Inicialmente a ideia foi fazer uma calibração
+    // Para considerar o ponto zero deslocado, mas tornou-se inviável pois existia o risco de cada placa ter uma
+    // calibração diferente. Por isso foi adicionado um gap para manter o led apagado próximo do ponto zero.
+    if(r_level < 70) r_level = 0;
+    if(b_level < 70) b_level = 0;
+
+    pwm_set_gpio_level(LED_R, r_level);
+    pwm_set_gpio_level(LED_B, b_level);
 }
 
 int main()
@@ -158,9 +168,9 @@ int main()
     while (true) {
         // Lê os valores do joystick
         adc_select_input(0);
-        uint16_t joy_x = adc_read();
-        adc_select_input(1);
         uint16_t joy_y = adc_read();
+        adc_select_input(1);
+        uint16_t joy_x = adc_read();
         
         // Atualiza o pwm de acordo com a posição do joystick
         update_pwm(joy_x, joy_y);              
